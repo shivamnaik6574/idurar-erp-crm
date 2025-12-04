@@ -20,7 +20,7 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Add EC2 host to known hosts to avoid prompt
+          # Add EC2 host to known hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
           # SSH into EC2 and deploy
@@ -31,6 +31,12 @@ jobs:
 
           echo ">> Moving to project directory..."
           cd /root/idurar-erp-crm
+
+          echo ">> Ensure .env file exists"
+          if [ ! -f .env ]; then
+              echo "Missing .env file! Copying from .env.example..."
+              cp .env.example .env
+          fi
 
           echo ">> Pulling latest code..."
           git fetch --all
@@ -50,11 +56,8 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/idurar-nginx:latest
 
           echo ">> Deploying containers safely..."
-          docker compose pull
-          docker compose up -d --build --remove-orphans
-
-          echo ">> Cleaning Docker cache..."
-          docker image prune -af
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d --build --remove-orphans
 
           echo ">> Deployment Complete Successfully!"
 
