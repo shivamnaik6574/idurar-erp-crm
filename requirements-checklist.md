@@ -33,6 +33,8 @@
 - nginx-proxy/Dockerfile
 - docker-compose.yml
 
+# comment to verify cicd
+
 # Configuration Files
 - frontend/nginx.conf
 - nginx-proxy/nginx.conf
