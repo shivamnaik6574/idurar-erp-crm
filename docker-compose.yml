@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: idurar-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: idurar-backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DATABASE=mongodb://mongo:27017/idurar
+      - JWT_SECRET=secret
+      - NODE_ENV=production
+      - PUBLIC_SERVER_FILE=https://44.196.176.222/public/
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-IDURAR-Backend}
+      - NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-info}
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: idurar-frontend
+    restart: always
+
+  nginx-proxy:
+    build: ./nginx-proxy
+    container_name: idurar-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  mongo-data:
